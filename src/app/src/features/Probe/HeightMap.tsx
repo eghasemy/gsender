@@ -22,11 +22,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Button } from 'app/components/ui/button';
-import { Input } from 'app/components/ui/input';
-import { Label } from 'app/components/ui/label';
-import { Checkbox } from 'app/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from 'app/components/ui/card';
+import { Button } from 'app/components/shadcn/Button';
+import { Input } from 'app/components/shadcn/Input';
+import { Label } from 'app/components/shadcn/Label';
+import { Checkbox } from 'app/components/shadcn/Checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from 'app/components/shadcn/Card';
 import controller from 'app/lib/controller';
 import { GRBL_ACTIVE_STATE_IDLE, WORKFLOW_STATE_RUNNING } from 'app/constants';
 import { useTypedSelector } from 'app/hooks/useTypedSelector';
