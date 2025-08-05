@@ -750,3 +750,167 @@ export const getProbeCode = (
     // Default do nothing bc we don't recognize the options
     return [];
 };
+
+// Advanced probing functions for IoSender feature parity
+
+export const getEdgeFinderCode = (
+    mode: 'external' | 'internal',
+    edge: string,
+    workpieceHeight: number,
+    probeZ: boolean,
+    probeDistance: number = 50,
+    fastFeed: number = 200,
+    slowFeed: number = 50
+): Array<string> => {
+    const code: Array<string> = [
+        `; Edge Finder - ${mode}`,
+        `; Edge: ${edge}`,
+        'G21 G91', // Metric, relative mode
+    ];
+
+    const direction = mode === 'external' ? -1 : 1; // External probes inward, internal probes outward
+
+    switch (edge) {
+        case 'A': // Bottom-left corner
+            if (mode === 'external') {
+                code.push(
+                    'G38.2 X-50 F200', // Probe X negative
+                    'G0 X2',
+                    'G38.2 X-5 F50',
+                    'G10 L20 P0 X0',
+                    'G0 X10 Y10',
+                    'G38.2 Y-50 F200', // Probe Y negative
+                    'G0 Y2',
+                    'G38.2 Y-5 F50',
+                    'G10 L20 P0 Y0'
+                );
+            } else {
+                code.push(
+                    'G38.2 X50 F200', // Probe X positive (inside)
+                    'G0 X-2',
+                    'G38.2 X5 F50',
+                    'G10 L20 P0 X0',
+                    'G0 X-10 Y-10',
+                    'G38.2 Y50 F200', // Probe Y positive (inside)
+                    'G0 Y-2',
+                    'G38.2 Y5 F50',
+                    'G10 L20 P0 Y0'
+                );
+            }
+            break;
+        // Add other edge cases as needed
+    }
+
+    if (probeZ) {
+        code.push(
+            '; Z probe',
+            'G38.2 Z-50 F200',
+            'G0 Z2',
+            'G38.2 Z-5 F50',
+            'G10 L20 P0 Z0'
+        );
+    }
+
+    code.push('G90 G0 X0 Y0'); // Return to origin
+    return code;
+};
+
+export const getCenterFinderCode = (
+    mode: 'inside' | 'outside',
+    workpieceSizeX: number,
+    workpieceSizeY: number,
+    passes: number = 2
+): Array<string> => {
+    const code: Array<string> = [
+        `; Center Finder - ${mode}`,
+        `; Size: X${workpieceSizeX} Y${workpieceSizeY}`,
+        `; Passes: ${passes}`,
+        'G21 G91',
+    ];
+
+    const probeDistance = mode === 'inside' ? 
+        Math.max(workpieceSizeX, workpieceSizeY) / 2 + 10 : 
+        Math.max(workpieceSizeX, workpieceSizeY) + 20;
+
+    for (let pass = 1; pass <= passes; pass++) {
+        code.push(`; Pass ${pass} of ${passes}`);
+        
+        if (mode === 'inside') {
+            code.push(
+                // Probe X positive
+                `G38.2 X${probeDistance} F200`,
+                'G0 X-2',
+                'G38.2 X5 F50',
+                'G4 P0.1',
+                '%X_RIGHT=posx',
+                `G0 X-${probeDistance + 5}`,
+                
+                // Probe X negative
+                `G38.2 X-${probeDistance} F200`,
+                'G0 X2',
+                'G38.2 X-5 F50',
+                'G4 P0.1',
+                '%X_LEFT=posx',
+                
+                // Calculate and move to X center
+                '%X_CENTER=(X_RIGHT + X_LEFT)/2',
+                'G90 G0 X[X_CENTER]',
+                'G91'
+            );
+        }
+        // Add more logic for outside probing and Y axis
+    }
+
+    code.push(
+        'G10 L20 P0 X0 Y0',
+        'G90 G0 X0 Y0'
+    );
+
+    return code;
+};
+
+export const getHeightMapCode = (
+    minX: number,
+    minY: number,
+    width: number,
+    height: number,
+    gridSizeX: number,
+    gridSizeY: number,
+    addPause: boolean = false
+): Array<string> => {
+    const code: Array<string> = [
+        '; Height Map Generation',
+        `; Area: X${minX} Y${minY} W${width} H${height}`,
+        `; Grid: ${gridSizeX} x ${gridSizeY}`,
+        'G21 G90',
+    ];
+
+    if (addPause) {
+        code.push('M0 (Pause before probing)');
+    }
+
+    const pointsX = Math.ceil(width / gridSizeX) + 1;
+    const pointsY = Math.ceil(height / gridSizeY) + 1;
+
+    code.push(`G0 X${minX} Y${minY}`);
+
+    for (let y = 0; y < pointsY; y++) {
+        for (let x = 0; x < pointsX; x++) {
+            const pointX = minX + (x * gridSizeX);
+            const pointY = minY + (y * gridSizeY);
+            
+            code.push(
+                `; Point ${y * pointsX + x + 1} of ${pointsX * pointsY}`,
+                `G0 X${pointX} Y${pointY}`,
+                'G38.2 Z-50 F200',
+                'G0 Z2',
+                'G38.2 Z-5 F50',
+                '%PROBE_Z=posz',
+                'G0 Z5'
+            );
+        }
+    }
+
+    code.push('G0 X0 Y0');
+    return code;
+};

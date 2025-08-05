@@ -34,6 +34,7 @@ import {
 import store from 'app/store';
 import { convertToImperial } from 'app/lib/units';
 import Probe from './Probe';
+import EnhancedProbe from './EnhancedProbe';
 import RunProbe from './RunProbe';
 import {
     // Units
@@ -496,7 +497,7 @@ const ProbeWidget = () => {
         <>
             <div className="relative">
                 <RunProbe state={state} actions={actions} />
-                <Probe state={state} actions={actions} />
+                <EnhancedProbe state={state} actions={actions} />
             </div>
         </>
     );
