@@ -13,6 +13,11 @@ export type PROBE_TYPES_T = (typeof PROBE_TYPES)[keyof typeof PROBE_TYPES];
 export type TOUCHPLATE_TYPES_T =
     (typeof TOUCHPLATE_TYPES)[keyof typeof TOUCHPLATE_TYPES];
 
+// New probe types for IoSender feature parity
+export type EDGE_FINDER_MODE = 'external' | 'internal';
+export type CENTER_FINDER_MODE = 'inside' | 'outside';
+export type PROBE_EDGE_POSITION = 'A' | 'B' | 'C' | 'D' | 'AB' | 'BC' | 'CD' | 'AD' | 'Z';
+
 // Interfaces
 
 export interface ProbeProfile {
@@ -26,6 +31,49 @@ export interface ProbeProfile {
         z: boolean;
     };
     touchplateType: TOUCHPLATE_TYPES_T;
+}
+
+// New interfaces for expanded probing functionality
+export interface EdgeFinderSettings {
+    mode: EDGE_FINDER_MODE;
+    probeEdge: PROBE_EDGE_POSITION;
+    workpieceHeight: number;
+    workpieceXYEdgeOffset: number;
+    probeZ: boolean;
+    previewEnable: boolean;
+}
+
+export interface CenterFinderSettings {
+    mode: CENTER_FINDER_MODE;
+    workpieceSizeX: number;
+    workpieceSizeY: number;
+    workpiecLockXY: boolean;
+    passes: number;
+    previewEnable: boolean;
+}
+
+export interface HeightMapSettings {
+    minX: number;
+    minY: number;
+    width: number;
+    height: number;
+    gridSizeX: number;
+    gridSizeY: number;
+    gridSizeLockXY: boolean;
+    addPause: boolean;
+    setToolOffset: boolean;
+}
+
+export interface RotationSettings {
+    angle: number;
+    compensateRotation: boolean;
+    probePoints: number;
+}
+
+export interface ToolLengthSettings {
+    referenceHeight: number;
+    toolNumber: number;
+    setOffset: boolean;
 }
 
 export interface ProbeCommand {
